@@ -75,7 +75,7 @@ function searchMachine() {
   if [ "$machineNameCheck" ]; then
     name=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "name:" | sed 's/name:/Nombre:/' | sed 's/^ *//' | awk 'NF{print $NF}')
     ip=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "ip:" | sed 's/ip:/IP:/' | sed 's/^ *//'| awk 'NF{print $NF}')
-    so=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "so:" | sed 's/so:/SO:/' | awk '{print $2}')
+        so=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "so:" | sed 's/so:/SO:/' | awk '{print $2}')
     dificultad=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "dificultad:" | sed 's/dificultad:/Dificultad:/' | sed 's/^ *//'| awk 'NF{print $NF}')
     skills=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "skills:" | sed 's/skills:/Skills:/' | sed 's/^ *//' | awk 'sub(/^Skills: /, "")')
     like=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "like:" | sed 's/like:/Estilo:/' | sed 's/^ *//'| awk 'sub(/^Estilo: /, "")')
@@ -85,8 +85,12 @@ function searchMachine() {
     echo -e "\n${yellowColour}[+]${endColour}${grayColour} Listando las propiedades de la máquina ${endColour}${blueColour}${machineName}${endColour}${grayColour}:${endColour}\n"
     echo -e "${turquoiseColour}Nombre:${endColour}${blueColour} ${name} ${endColour}"
     echo -e "${turquoiseColour}IP:${endColour}${grayColour} ${ip}${endColour}"
-    echo -e "${turquoiseColour}SO:${endColour}${grayColour} ${so}${endColour}"
-
+# Colorear segun el so
+  if [ "$so" == "Windows" ]; then
+    echo -e "${turquoiseColour}SO:${endColour}${greenColour} ${so}${endColour}"
+  elif [ "$so" == "Linux" ]; then
+    echo -e "${turquoiseColour}SO:${endColour}${purpleColour} ${so}${endColour}"
+  fi
 # Colorear según la dificultad
   if [ "$dificultad" == "Fácil" ]; then
     echo -e "${turquoiseColour}Dificultad:${endColour} ${turquoiseColour}${dificultad}${endColour}"
@@ -99,11 +103,9 @@ function searchMachine() {
   else
     echo -e "${turquoiseColour}Dificultad:${endColour} ${turquoiseColour}${dificultad}${endColour}"
   fi
-
-
-    echo -e "${greenColour}Skills:${endColour}${grayColour} ${skills}${endColour}"
-    echo -e "${greenColour}Estilo:${endColour}${grayColour} ${like}${endColour}"
-    echo -e "${turquoiseColour}YouTube:${endColour}${blueColour} ${youtube}${endColour}\n"
+    echo -e "${blueColour}Skills:${endColour}${grayColour} ${skills}${endColour}"
+    echo -e "${blueColour}Estilo:${endColour}${grayColour} ${like}${endColour}"
+    echo -e "${redColour}YouTube:${endColour}${blueColour} ${youtube}${endColour}\n"
     if [ "$activedir" ]; then 
       echo -e "${blueColour}Active Directory:${endColour}${greenColour}  ${endColour}"
     fi
@@ -111,6 +113,26 @@ function searchMachine() {
     echo -e "\n${redColour}[!]${endColour}${grayColour} La máquina ${endColour}${blueColour}${machineName}${endColour}${grayColour} no existe.${endColour}\n"
   fi
 }
+
+
+# Indicadores
+declare -i parameter_counter=0
+
+while getopts "m:uh" arg; do
+  case $arg in
+    m) machineName=$OPTARG;let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    h) ;;
+  esac
+done
+
+if [ $parameter_counter -eq 1 ]; then
+  searchMachine $machineName
+elif [ $parameter_counter -eq 2 ]; then
+  updateFiles
+else
+  helpPanel
+fi
 
 
 # Indicadores
