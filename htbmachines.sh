@@ -4,6 +4,8 @@
 # Tanto para ver las tecnicas utilizadas y desplegadas para comprometer la maquina, como material de refuerzo
 # El desarrollo del script es con fines de aprendizaje y soltura en bash
 # Autor Liandd
+#!/bin/bash
+
 #Colours
 greenColour="\e[0;32m"
 endColour="\033[0m\e[0m"
@@ -15,7 +17,7 @@ turquoiseColour="\e[0;36m"
 grayColour="\e[0;37m"
 
 function ctrl_c(){
-  echo -e "\n\n${redColour}[!] Saliendo...${endColour}\n"
+  echo -e "\n\n ${redColour} [!] Saliendo... ${endColour}\n"
   tput cnorm && exit 1
 }
 
@@ -26,41 +28,87 @@ main_url="https://htbmachines.github.io/bundle.js"
 trap ctrl_c INT
 
 function helpPanel(){
-  echo -e "\t${purpleColour}[#]${endColour} ${grayColour}Autor : Liandd${endColour}"
-  echo -e "\n${yellowColour}[!]${endColour} ${grayColour}Uso:${endColour}\n"
-  echo -e "\t${purpleColour}u)${endColour} ${grayColour}Descargar o actualizar archivos necesarios${endColour}" 
-  echo -e "\t${purpleColour}m)${endColour} ${grayColour}Buscar por nombre de maquina${endColour}" 
-  echo -e "\t${purpleColour}h)${endColour} ${grayColour}Mostrar panel de ayuda${endColour}" 
+  echo -e "\n${purpleColour}[#]${endColour}${grayColour} Autor: Liandd ${endColour}"
+  echo -e "\n${yellowColour}[!]${endColour}${grayColour} Uso: ${endColour}"
+  echo -e "\t${purpleColour}u)${endColour}${grayColour} Descargar o actualizar archivos necesarios. ${endColour}" 
+  echo -e "\t${purpleColour}m)${endColour}${grayColour} Buscar por nombre de maquina. ${endColour}" 
+  echo -e "\t${purpleColour}h)${endColour}${grayColour} Mostrar panel de ayuda. ${endColour}" 
 }
 
-function searchMachine(){
- machineName="$1"
- echo "$machineName"
-}
 
 function updateFiles(){
   if [ ! -f bundle.js ]; then
     tput civis
-    echo -e "\n${yellowColour}[+]${endColour} ${grayColour}Descargando archivos necesarios...${endColour}"
+    echo -e "\n ${yellowColour} [+] ${endColour} ${grayColour} Descargando archivos necesarios... ${endColour}"
     curl -s $main_url > bundle.js 
     js-beautify bundle.js | sponge bundle.js
-    echo -e "\n${yellowColour}[+]${endColour} ${grayColour}Todos los archivos han sido descargados${endColour}"
+    echo -e "\n ${yellowColour} [+] ${endColour} ${grayColour} Todos los archivos han sido descargados. ${endColour}"
     tput cnorm
   else
     tput civis
+    echo -e "\n ${yellowColour} [+] ${endColour} ${grayColour} Comprobando si hay actualizaciones pendientes... ${endColour}"
     curl -s $main_url > bundle_temp.js 
     js-beautify bundle_temp.js | sponge bundle_temp.js
     md5_tmp_value=$(md5sum bundle_temp.js | awk '{print $1}')
     md5_original_value=$(md5sum bundle.js | awk '{print $1}')
 
     if [ "$md5_tmp_value" == "$md5_original_value" ]; then
-      echo -e "[+] No hay actualizaciones"
+      echo -e "\n ${yellowColour} [+] ${endColour} ${grayColour} No se han detectado actualizaciones disponibles. ${endColour}"
       rm bundle_temp.js
     else
-      echo -e "[!] Hay actualizaciones"
+      echo -e "\n ${yellowColour} [!] ${endColour} Se han encontrado actualizaciones disponibles. ${endColour}"
+      sleep 1
+
+      rm bundle.js && mv bundle_temp.js bundle.js
+
+      echo -e "\n ${yellowColour} [+] ${endColour} ${grayColour} Los archivos han sido actualizados. ${endColour}"
     fi
 
     tput cnorm
+  fi
+}
+
+
+function searchMachine() {
+  machineNameCheck="$(cat bundle.js | awk "/name: \"$machineName\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//')"
+ 
+  if [ "$machineNameCheck" ]; then
+    name=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "name:" | sed 's/name:/Nombre:/' | sed 's/^ *//' | awk 'NF{print $NF}')
+    ip=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "ip:" | sed 's/ip:/IP:/' | sed 's/^ *//'| awk 'NF{print $NF}')
+    so=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "so:" | sed 's/so:/SO:/' | awk '{print $2}')
+    dificultad=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "dificultad:" | sed 's/dificultad:/Dificultad:/' | sed 's/^ *//'| awk 'NF{print $NF}')
+    skills=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "skills:" | sed 's/skills:/Skills:/' | sed 's/^ *//' | awk 'sub(/^Skills: /, "")')
+    like=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "like:" | sed 's/like:/Estilo:/' | sed 's/^ *//'| awk 'sub(/^Estilo: /, "")')
+    youtube=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep "youtube:" | awk '{print $2}')
+    activedir=$(cat bundle.js | awk "/name: \"${machineName}\"/,/resuelta:/" | grep -vE "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | tr -d ':' | sed 's/^ *//' | grep "activeDirectory" | sed 's/activeDirectory/Active Directory:/' | sed 's/^ *//' | sed 's/Active Directory/✔/')
+      
+    echo -e "\n${yellowColour}[+]${endColour}${grayColour} Listando las propiedades de la máquina ${endColour}${blueColour}${machineName}${endColour}${grayColour}:${endColour}\n"
+    echo -e "${turquoiseColour}Nombre:${endColour}${blueColour} ${name} ${endColour}"
+    echo -e "${turquoiseColour}IP:${endColour}${grayColour} ${ip}${endColour}"
+    echo -e "${turquoiseColour}SO:${endColour}${grayColour} ${so}${endColour}"
+
+# Colorear según la dificultad
+  if [ "$dificultad" == "Fácil" ]; then
+    echo -e "${turquoiseColour}Dificultad:${endColour} ${turquoiseColour}${dificultad}${endColour}"
+  elif [ "$dificultad" == "Media" ]; then
+    echo -e "${turquoiseColour}Dificultad:${endColour} ${blueColour}${dificultad}${endColour}"
+  elif [ "$dificultad" == "Difícil" ]; then
+    echo -e "${turquoiseColour}Dificultad:${endColour} ${yellowColour}${dificultad}${endColour}"
+  elif [ "$dificultad" == "Insane" ]; then
+    echo -e "${turquoiseColour}Dificultad:${endColour} ${redColour}${dificultad}${endColour}"
+  else
+    echo -e "${turquoiseColour}Dificultad:${endColour} ${turquoiseColour}${dificultad}${endColour}"
+  fi
+
+
+    echo -e "${greenColour}Skills:${endColour}${grayColour} ${skills}${endColour}"
+    echo -e "${greenColour}Estilo:${endColour}${grayColour} ${like}${endColour}"
+    echo -e "${turquoiseColour}YouTube:${endColour}${blueColour} ${youtube}${endColour}\n"
+    if [ "$activedir" ]; then 
+      echo -e "${blueColour}Active Directory:${endColour}${greenColour}  ${endColour}"
+    fi
+  else
+    echo -e "\n${redColour}[!]${endColour}${grayColour} La máquina ${endColour}${blueColour}${machineName}${endColour}${grayColour} no existe.${endColour}\n"
   fi
 }
 
