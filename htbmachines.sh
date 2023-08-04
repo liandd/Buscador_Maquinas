@@ -33,6 +33,7 @@ function helpPanel(){
   echo -e "\t${purpleColour}u)${endColour}${grayColour} Descargar o actualizar archivos necesarios. ${endColour}" 
   echo -e "\t${purpleColour}m)${endColour}${grayColour} Buscar por nombre de maquina. ${endColour}" 
   echo -e "\t${purpleColour}i)${endColour}${grayColour} Buscar por direccion IP. ${endColour}" 
+  echo -e "\t${purpleColour}y)${endColour}${grayColour} Obtener link de la resolucion de la maquina en youtube. ${endColour}" 
   echo -e "\t${purpleColour}h)${endColour}${grayColour} Mostrar panel de ayuda. ${endColour}" 
 }
 
@@ -111,7 +112,7 @@ function searchMachine() {
       echo -e "${blueColour}Active Directory:${endColour}${greenColour}  ${endColour}"
     fi
   else
-    echo -e "\n${redColour}[!]${endColour}${grayColour} La máquina ${endColour}${blueColour}${machineName}${endColour}${grayColour} no existe.${endColour}\n"
+    echo -e "\n${redColour}[!] La máquina ${machineName} no existe.${endColour}\n"
   fi
 }
 
@@ -121,18 +122,28 @@ function searchIP(){
   if [ "$machineName" ]; then
      echo -e "\n${yellowColour}[+]${endColour}${grayColour} La máquina correspondiente para la IP${endColour}${blueColour} $ipAddress${endColour}${grayColour} es${endColour}${purpleColour} $machineName${endColour}\n" 
    else
-  echo -e "\n${yellowColour}[+]${endColour}${grayColour} La máquina correspondiente para la IP${endColour}${blueColour} $ipAddress${endColour}${grayColour} no existe.${endColour}\n" 
+  echo -e "\n${redColour}[!] La máquina correspondiente para la IP $ipAddress no existe.${endColour}\n" 
   fi
 }
 
+function getYoutubeLink(){
+  machineNameYT="$1"
+  ytChecker=$(cat bundle.js | awk "/name: \"$machineNameYT\"/,/resuelta:/" | grep -vE -i "id:|sku:|resuelta:" | tr -d '"' | tr -d ',' | sed 's/^ *//' | grep youtube | awk 'NF{print $NF}')
+  if [ $ytChecker ]; then 
+    echo -e "\n${yellowColour}[+]${endColour}${grayColour} La resolucion en youtube de la maquina${endColour}${blueColour} $machineNameYT${endColour}${grayColour} es${endColour}${purpleColour} $ytChecker${endColour}\n" 
+  else
+    echo -e "\n${yellowColour}[+]${endColour}${grayColour} La maquina por ahora no tiene solucion. ${endColour}\n"
+  fi
+}
 # Indicadores
 declare -i parameter_counter=0
 
-while getopts "m:ui:h" arg; do
+while getopts "m:ui:y:h" arg; do
   case $arg in
-    m) machineName=$OPTARG;let parameter_counter+=1;;
+    m) machineName="$OPTARG";let parameter_counter+=1;;
     u) let parameter_counter+=2;;
-    i) ipAddress=$OPTARG;let parameter_counter+=3;;
+    i) ipAddress="$OPTARG";let parameter_counter+=3;;
+    y) machineNameYT="$OPTARG"; let parameter_counter+=4;;
     h) ;;
   esac
 done
@@ -143,6 +154,8 @@ elif [ $parameter_counter -eq 2 ]; then
   updateFiles
 elif [ $parameter_counter -eq 3 ]; then
   searchIP $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getYoutubeLink $machineNameYT
 else
   helpPanel
 fi
