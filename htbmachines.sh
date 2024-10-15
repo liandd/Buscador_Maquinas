@@ -1,10 +1,4 @@
 #!/bin/bash
-# Buscador de Maquinas Resueltas por S4vitar de la plataforma HTB, VulnHub y demas
-# Script para ver si una maquina cualquiera tiene solucion por s4vitar y nada de buscar en youtube
-# Tanto para ver las tecnicas utilizadas y desplegadas para comprometer la maquina, como material de refuerzo
-# El desarrollo del script es con fines de aprendizaje y soltura en bash
-# Autor Liandd
-#!/bin/bash
 
 #Colours
 greenColour="\e[0;32m"
@@ -28,7 +22,6 @@ main_url="https://htbmachines.github.io/bundle.js"
 trap ctrl_c INT
 
 function helpPanel(){
-  echo -e "\n${purpleColour}[#]${endColour}${grayColour} Autor: Liandd ${endColour}"
   echo -e "\n${yellowColour}[!]${endColour}${grayColour} Uso: ${endColour}"
   echo -e "\t${purpleColour}u)${endColour}${grayColour} Descargar o actualizar archivos necesarios. ${endColour}" 
   echo -e "\t${purpleColour}m)${endColour}${grayColour} Buscar por nombre de maquina. ${endColour}" 
